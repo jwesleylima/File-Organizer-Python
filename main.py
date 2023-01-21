@@ -1,6 +1,7 @@
 """Organizer is a class that makes it easy to 
 organize and manipulate files."""
 
+
 """
 MIT License
 
@@ -24,3 +25,37 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
+
+from pathlib import Path
+from os import PathLike
+from typing import Any
+
+
+class Organizer(object):
+	"""Class that allows you to organize and manipulate files."""
+
+	def __init__(self, target_path: PathLike):
+		self._target_path = Organizer._convert_to_pathlib(target_path)
+
+		if self._target_path is None or not self._target_path.exists():
+			raise FileNotFoundError('`target_path` must point to a valid path and exist')
+		elif not self._target_path.is_dir():
+			raise NotADirectoryError('`target_path` must point to a directory, not a file')
+
+	@staticmethod
+	def _convert_to_pathlib(obj: Any) -> Path:
+		"""Returns a Path whether a string or another Path is passed.
+
+		Will return None if it is neither a string nor an 
+		instance of pathlib.Path.
+
+		:param obj: Object to convert to pathlib.Path
+		:type obj: Any string or instance of pathlib.Path
+		:return: A new instance of pathlib.Path that points to the contents of `obj`. 
+			Returns None if `obj` is not a string or pathlib.Path.
+		:rtype: pathlib.Path or None"""
+		if isinstance(obj, Path):
+			return obj
+		elif isinstance(obj, str):
+			return Path(str(obj))
