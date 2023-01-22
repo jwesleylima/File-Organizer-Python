@@ -29,19 +29,22 @@ SOFTWARE.
 
 from pathlib import Path
 from os import PathLike
-from typing import Any
+from typing import Any, Dict, NoReturn
 
 
 class Organizer(object):
 	"""Class that allows you to organize and manipulate files."""
 
-	def __init__(self, target_path: PathLike):
+	def __init__(self, target_path: Union[str, PathLike[str]], rules: Dict[str, str]):
 		self._target_path = Organizer._convert_to_pathlib(target_path)
+		self._rules = rules
 
 		if self._target_path is None or not self._target_path.exists():
 			raise FileNotFoundError('`target_path` must point to a valid path and exist')
 		elif not self._target_path.is_dir():
 			raise NotADirectoryError('`target_path` must point to a directory, not a file')
+		elif len(self._rules.keys()) == 0:
+			raise ValueError('The `rules` dict must contain at least one key')
 
 	@staticmethod
 	def _convert_to_pathlib(obj: Any) -> Path:
@@ -59,3 +62,46 @@ class Organizer(object):
 			return obj
 		elif isinstance(obj, str):
 			return Path(str(obj))
+
+	def _move_files(self, files: list[Path], new_location: Path) -> NoReturn:
+		"""Move all paths from `files` to `new_location`.
+
+		_move_files(self, files: list[pathlib.Path], new_location: pathlib.Path)
+
+		If the path to `new_location` doesn't exist yet, 
+		it will be created.
+
+		:param files: List of pathlib.Path you want to move to `new_location`.
+		:type files: list[pathlib.Path]
+		:param new_location: A pathlib.Path that will be the destination
+		:type new_location: pathlib.Path
+		:return: None
+		:rtype: None
+		"""
+		if len(files) == 0:
+			return
+		elif not new_location.exists():
+			new_location.mkdir(parents=True)
+			if not new_location.exists():
+				return
+
+		for file in files:
+			final_new_location = new_location.joinpath(file.name)
+			file.rename(final_new_location.absolute())
+
+	def organize(self) -> NoReturn:
+		"""Main method that starts the iteration of the files.
+
+		organize()
+
+		:return: None
+		:rtype: None"""
+		for pattern, new_location in self._rules.items():
+			new_loc_path = Organizer._convert_to_pathlib(new_location)
+			if not isinstance(pattern, str) \
+				or new_loc_path is None:
+				continue
+
+			selected_files = list(self._target_path.glob(pattern))
+			print(selected_files)
+			self._move_files(files=selected_files, new_location=new_loc_path)
