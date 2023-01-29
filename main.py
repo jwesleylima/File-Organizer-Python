@@ -2,16 +2,36 @@
 organize and manipulate files."""
 
 
-from pathlib import Path
+from pathlib import PurePath, Path
 from os import PathLike
-from typing import (Any, Union, Callable, Iterable, Dict, NoReturn)
+from typing import (Any, Union, Callable, Iterable, 
+                    Dict, NoReturn)
 
 
 class Organizer(object):
-    """Class that allows you to organize and manipulate files."""
+    """Class that allows you to organize and manipulate files.
+
+    Organizer(target_path: Union[str, PurePath, PathLike[str]], 
+              rules: Dict[str, str])
+
+    This is a simple, yet useful and efficient class. It allows you to send 
+    certain files from one place to another quickly. This is especially useful 
+    when we are looking to organize a large folder of files, as it would be 
+    cumbersome to move all the videos (for example) to the "Downloaded videos" 
+    folder. With this class you can not only move video files but also any 
+    other file type and even folders/directories.
+
+    PUBLIC METHODS:
+
+    organize() -> NoReturn
+        Main method that starts the iteration of the files.
+
+        :return: None
+        :rtype: None
+    """
 
     def __init__(self, 
-                 target_path: Union[str, PathLike[str]],
+                 target_path: Union[str, PurePath, PathLike[str]],
                  rules: Dict[str, str]):
         self._target_path = Organizer._to_pathlib(target_path)
         self._rules = rules
@@ -73,13 +93,9 @@ class Organizer(object):
             file_parent = new_location
             if callable(new_location):
                 callback_return = new_location(file)
-                if not (isinstance(callback_return, str)
-                   or isinstance(callback_return, Path)):
-                    continue
                 file_parent = Organizer._to_pathlib(callback_return)
-
-            if file_parent.absolute().samefile(file.absolute()):
-                continue
+                if file_parent is None:
+                    continue
 
             file_parent.mkdir(parents=True, exist_ok=True)
             final_new_location = file_parent.joinpath(file.name)
