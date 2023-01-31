@@ -58,7 +58,7 @@ class Organizer:
 
     def __init__(self, 
                  target_path: Union[str, PurePath, PathLike[str]],
-                 rules: Dict[str, str]):
+                 rules: Union[Dict[str, str], Dict[str, Callable]]):
         self._target_path = Organizer._to_pathlib(target_path)
         self._rules = rules
 
